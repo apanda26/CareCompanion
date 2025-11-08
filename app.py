@@ -3,6 +3,7 @@ import google.generativeai as genai
 import datetime
 import json
 from typing import Optional, List, Dict
+import os
 
 # -------------------------------
 # CONFIGURATION
@@ -17,7 +18,7 @@ st.set_page_config(
 # -------------------------------
 # GOOGLE GEMINI SETUP
 # -------------------------------
-API_KEY = "AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"  # 🔑 Replace with your Gemini key
+API_KEY = "AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"
 
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
@@ -90,6 +91,26 @@ If user mentions pain, falling, breathing trouble, or confusion:
     return response.text if hasattr(response, "text") else "I'm here with you."
 
 # -------------------------------
+# SESSION STATE SETUP
+# -------------------------------
+if "medications" not in st.session_state:
+    st.session_state.medications = load_medications()
+
+# Load chat sessions from disk if available
+if "sessions" not in st.session_state:
+    if os.path.exists("chat_sessions.json"):
+        with open("chat_sessions.json", "r") as f:
+            st.session_state.sessions = json.load(f)
+    else:
+        st.session_state.sessions = {}
+
+if "current_session" not in st.session_state:
+    st.session_state.current_session = "default"
+
+if st.session_state.current_session not in st.session_state.sessions:
+    st.session_state.sessions[st.session_state.current_session] = []
+
+# -------------------------------
 # UI START
 # -------------------------------
 st.markdown(
@@ -98,13 +119,9 @@ st.markdown(
 )
 st.markdown("<p style='text-align:center; color:gray;'>Your caring AI companion for safety, medication, and conversation.</p>", unsafe_allow_html=True)
 
-# Session state setup
-if "history" not in st.session_state:
-    st.session_state.history = []
-if "medications" not in st.session_state:
-    st.session_state.medications = load_medications()
-
-# Sidebar (Profile & Meds)
+# -------------------------------
+# SIDEBAR
+# -------------------------------
 with st.sidebar:
     st.header("👤 Profile & Settings")
     name = st.text_input("Your name", st.session_state.get("name", ""))
@@ -134,10 +151,35 @@ with st.sidebar:
                     json.dump(st.session_state.medications, f, indent=2)
                 st.success("Medication added!")
 
+    st.divider()
+    st.header("💬 Chat Sessions")
+
+    # Select session
+    session_names = list(st.session_state.sessions.keys())
+    selected = st.selectbox("Select a chat session", session_names, index=session_names.index(st.session_state.current_session))
+    st.session_state.current_session = selected
+
+    # New session
+    if st.button("🆕 Start New Chat"):
+        new_name = f"chat_{len(st.session_state.sessions)+1}"
+        st.session_state.sessions[new_name] = []
+        st.session_state.current_session = new_name
+        st.experimental_rerun()
+
+    # Save all sessions
+    if st.button("💾 Save All Sessions"):
+        with open("chat_sessions.json", "w") as f:
+            json.dump(st.session_state.sessions, f, indent=2)
+        st.success("All chat sessions saved!")
+
 st.divider()
 
-# Chat UI
-for msg in st.session_state.history:
+# -------------------------------
+# DISPLAY CHAT
+# -------------------------------
+history = st.session_state.sessions[st.session_state.current_session]
+
+for msg in history:
     role = "🧠" if msg["role"] == "assistant" else "👤"
     bubble_color = "#3b82f6" if msg["role"] == "user" else "#f1f5f9"
     text_color = "white" if msg["role"] == "user" else "black"
@@ -146,10 +188,12 @@ for msg in st.session_state.history:
         unsafe_allow_html=True
     )
 
-# Input box
+# -------------------------------
+# USER INPUT
+# -------------------------------
 user_input = st.chat_input("Type your message here...")
 if user_input:
-    st.session_state.history.append({"role": "user", "content": user_input})
+    history.append({"role": "user", "content": user_input})
     concern = detect_concern(user_input)
     if concern == "EMERGENCY":
         ai_reply = "🚨 This sounds serious! Please call 911 immediately or contact your caregiver."
@@ -157,8 +201,9 @@ if user_input:
         ai_reply = "⚠️ I'm very concerned. Please reach your caregiver as soon as possible."
     else:
         meds_text = get_medications_text(st.session_state.medications)
-        ai_reply = generate_ai_response(user_input, st.session_state.history, meds_text)
-    st.session_state.history.append({"role": "assistant", "content": ai_reply})
+        ai_reply = generate_ai_response(user_input, history, meds_text)
+    history.append({"role": "assistant", "content": ai_reply})
+    st.session_state.sessions[st.session_state.current_session] = history
     st.rerun()
 
 st.markdown("<br><p style='text-align:center; color:gray;'>💙 Powered by Google Gemini</p>", unsafe_allow_html=True)
