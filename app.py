@@ -17,7 +17,7 @@ st.set_page_config(
 # -------------------------------
 # GOOGLE GEMINI SETUP
 # -------------------------------
-API_KEY = "AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"
+API_KEY = st.secrets["AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"]  
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
 
@@ -82,11 +82,19 @@ If user mentions pain, falling, breathing trouble, or confusion:
 - Show concern
 - Recommend calling caregiver or 911 calmly
 """
-    chat_context = "\n".join([f"{m['role']}: {m['content']}" for m in history[-6:]])
+    chat_context = "\n".join([f"{m['role']}: {m['content']}" for m in history[-6:]]) or "No previous conversation."
     prompt = f"{system_context}\n\nConversation:\n{chat_context}\nUser: {user_message}\nCare Companion:"
     
-    response = model.generate_content(prompt)
-    return response.text if hasattr(response, "text") else "I'm here with you."
+    try:
+        response = model.generate_content(prompt)
+        reply = response.text if hasattr(response, "text") else ""
+    except Exception as e:
+        print("AI response failed:", e)
+        reply = ""
+
+    if not reply.strip():
+        reply = "Hello! I'm here to chat with you. How are you feeling today?"
+    return reply
 
 # -------------------------------
 # SESSION STATE SETUP
@@ -172,8 +180,9 @@ with st.sidebar:
 
     # Select session
     session_names = list(st.session_state.sessions.keys())
-    selected = st.selectbox("Select a chat session", session_names, index=session_names.index(st.session_state.current_session))
-    st.session_state.current_session = selected
+    if session_names:
+        selected = st.selectbox("Select a chat session", session_names, index=session_names.index(st.session_state.current_session))
+        st.session_state.current_session = selected
 
     # New session
     if st.button("🆕 Start New Chat"):
