@@ -164,6 +164,7 @@ with st.sidebar:
         new_name = f"chat_{len(st.session_state.sessions)+1}"
         st.session_state.sessions[new_name] = []
         st.session_state.current_session = new_name
+        
 
     # Save all sessions
     if st.button("💾 Save All Sessions"):
@@ -186,6 +187,19 @@ for msg in history:
         f"<div style='background:{bubble_color}; color:{text_color}; padding:12px; border-radius:12px; margin:8px 0;'>{role} {msg['content']}</div>",
         unsafe_allow_html=True
     )
+st.subheader("💊 Remove Medication")
+
+# Only show remove option if there are medications
+if st.session_state.medications:
+    med_names = [med['name'] for med in st.session_state.medications]
+    med_to_remove = st.selectbox("Select medication to remove", [""] + med_names)
+
+    if st.button("🗑️ Remove Medication") and med_to_remove:
+        st.session_state.medications = [med for med in st.session_state.medications if med['name'] != med_to_remove]
+        # Save updated medications
+        with open("medications.json", "w") as f:
+            json.dump(st.session_state.medications, f, indent=2)
+        st.success(f"Medication '{med_to_remove}' removed!")
 
 # -------------------------------
 # USER INPUT
@@ -206,4 +220,3 @@ if user_input:
     st.rerun()
 
 st.markdown("<br><p style='text-align:center; color:gray;'>💙 Powered by Google Gemini</p>", unsafe_allow_html=True)
-
