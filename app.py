@@ -17,7 +17,7 @@ st.set_page_config(
 # -------------------------------
 # GOOGLE GEMINI SETUP
 # -------------------------------
-API_KEY = "YOUR_GOOGLE_GEMINI_KEY"  # 🔑 Replace with your Gemini key
+API_KEY = "AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
 
