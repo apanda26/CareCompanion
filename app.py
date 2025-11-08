@@ -164,7 +164,6 @@ with st.sidebar:
         new_name = f"chat_{len(st.session_state.sessions)+1}"
         st.session_state.sessions[new_name] = []
         st.session_state.current_session = new_name
-        st.experimental_rerun()
 
     # Save all sessions
     if st.button("💾 Save All Sessions"):
@@ -207,3 +206,4 @@ if user_input:
     st.rerun()
 
 st.markdown("<br><p style='text-align:center; color:gray;'>💙 Powered by Google Gemini</p>", unsafe_allow_html=True)
+
