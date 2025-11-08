@@ -217,7 +217,11 @@ for msg in history:
 # -------------------------------
 user_input = st.chat_input("Type your message here...")
 if user_input:
+    # Append user message immediately
     history.append({"role": "user", "content": user_input})
+    st.session_state.sessions[st.session_state.current_session] = history
+
+    # Detect safety concerns
     concern = detect_concern(user_input)
     if concern == "EMERGENCY":
         ai_reply = "🚨 This sounds serious! Please call 911 immediately or contact your caregiver."
@@ -226,6 +230,8 @@ if user_input:
     else:
         meds_text = get_medications_text(st.session_state.medications)
         ai_reply = generate_ai_response(user_input, history, meds_text)
+
+    # Append AI response
     history.append({"role": "assistant", "content": ai_reply})
     st.session_state.sessions[st.session_state.current_session] = history
 
