@@ -17,7 +17,7 @@ st.set_page_config(
 # -------------------------------
 # GOOGLE GEMINI SETUP
 # -------------------------------
-API_KEY = st.secrets["AIzaSyBuLV_jzkqr-CXRiGY__utepQ_3I_dbIk8"]  
+API_KEY = st.secrets["GOOGLE_GEMINI_KEY"]  
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
 
