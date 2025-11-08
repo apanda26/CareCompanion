@@ -17,7 +17,7 @@ st.set_page_config(
 # -------------------------------
 # GOOGLE GEMINI SETUP
 # -------------------------------
-API_KEY = st.secrets["GOOGLE_GEMINI_KEY"]  
+API_KEY = st.secrets["GOOGLE_GEMINI_KEY"]
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
 
@@ -84,12 +84,12 @@ If user mentions pain, falling, breathing trouble, or confusion:
 """
     chat_context = "\n".join([f"{m['role']}: {m['content']}" for m in history[-6:]]) or "No previous conversation."
     prompt = f"{system_context}\n\nConversation:\n{chat_context}\nUser: {user_message}\nCare Companion:"
-    
+
     try:
         response = model.generate_content(prompt)
         reply = response.text if hasattr(response, "text") else ""
     except Exception as e:
-        print("AI response failed:", e)
+        st.error(f"AI generation failed: {e}")
         reply = ""
 
     if not reply.strip():
@@ -229,4 +229,5 @@ if user_input:
     history.append({"role": "assistant", "content": ai_reply})
     st.session_state.sessions[st.session_state.current_session] = history
 
+# -------------------------------
 st.markdown("<br><p style='text-align:center; color:gray;'>💙 Powered by Google Gemini</p>", unsafe_allow_html=True)
