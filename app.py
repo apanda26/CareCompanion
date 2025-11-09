@@ -71,6 +71,16 @@ st.markdown("""
         border-radius: 10px;
         border-left: 4px solid #667eea;
         margin: 10px 0;
+        color: #1e293b;
+    }
+    .guide-section h2, .guide-section h3, .guide-section h4 {
+        color: #334155;
+    }
+    .guide-section ul, .guide-section ol, .guide-section p {
+        color: #475569;
+    }
+    .guide-section strong {
+        color: #1e293b;
     }
 </style>
 """, unsafe_allow_html=True)
