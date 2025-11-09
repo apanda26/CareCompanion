@@ -5,9 +5,7 @@ import os
 from typing import Optional
 from datetime import datetime
 
-# -------------------------------
-# CONFIGURATION
-# -------------------------------
+#Starting Page
 st.set_page_config(
     page_title="💙 Care Companion",
     page_icon="💙",
@@ -15,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
 st.markdown("""
 <style>
     .main-header {
@@ -92,9 +89,7 @@ API_KEY = st.secrets["GOOGLE_GEMINI_KEY"]
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-flash-latest")
 
-# -------------------------------
 # MEDICATION MANAGEMENT
-# -------------------------------
 def load_medications():
     try:
         with open("medications.json", "r") as f:
@@ -119,9 +114,7 @@ def get_medications_text(medications):
         text += f"- {med['name']}: {med['dosage']} at {times_str}{food_note}\n"
     return text
 
-# -------------------------------
 # SAFETY CHECKS
-# -------------------------------
 def detect_concern(message: str) -> Optional[str]:
     emergency_keywords = ['chest pain', "can't breathe", 'heart attack', 'stroke', 'bleeding heavily', 'unconscious', 'choking', 'seizure']
     urgent_keywords = ['fell', 'fall', 'hurt', 'pain', 'dizzy', 'confused', 'vomit', 'stuck', 'help me', 'can\'t move']
@@ -133,9 +126,8 @@ def detect_concern(message: str) -> Optional[str]:
         return "URGENT"
     return None
 
-# -------------------------------
+
 # AI RESPONSE HANDLER
-# -------------------------------
 def generate_ai_response(user_message, history, meds_text):
     system_context = f"""You are Care Companion, a warm and caring AI assistant for elderly users.
 
@@ -197,9 +189,8 @@ CONVERSATION STYLE:
     
     return reply
 
-# -------------------------------
+
 # SESSION STATE SETUP
-# -------------------------------
 if "medications" not in st.session_state:
     st.session_state.medications = load_medications()
 
@@ -225,16 +216,13 @@ if "name" not in st.session_state:
 if "show_guide" not in st.session_state:
     st.session_state.show_guide = False
 
-# -------------------------------
 # SAVE SESSIONS FUNCTION
-# -------------------------------
 def save_sessions():
     with open("chat_sessions.json", "w") as f:
         json.dump(st.session_state.sessions, f, indent=2)
 
-# -------------------------------
+
 # UI START - HEADER
-# -------------------------------
 st.markdown("""
 <div class="main-header">
     <h1>💙 Care Companion</h1>
@@ -248,9 +236,8 @@ with col2:
     if st.button("📖 " + ("Hide" if st.session_state.show_guide else "Show") + " User Guide", use_container_width=True):
         st.session_state.show_guide = not st.session_state.show_guide
 
-# -------------------------------
+
 # USER GUIDE
-# -------------------------------
 if st.session_state.show_guide:
     st.markdown("""
     <div class="guide-section">
@@ -326,9 +313,8 @@ if st.session_state.show_guide:
     
     st.divider()
 
-# -------------------------------
+
 # SIDEBAR
-# -------------------------------
 with st.sidebar:
     st.header("👤 Profile & Settings")
     profile_name = st.text_input("Your name", st.session_state.name)
@@ -423,9 +409,8 @@ with st.sidebar:
     st.divider()
     st.caption("💙 Powered by Google Gemini")
 
-# -------------------------------
+
 # QUICK ACTION BUTTONS
-# -------------------------------
 st.subheader("🎯 Quick Actions")
 quick_col1, quick_col2, quick_col3 = st.columns(3)
 
@@ -443,9 +428,8 @@ with quick_col3:
 
 st.divider()
 
-# -------------------------------
+
 # DISPLAY CHAT HISTORY
-# -------------------------------
 history = st.session_state.sessions[st.session_state.current_session]
 
 if not history:
@@ -480,9 +464,7 @@ else:
             </div>
             """, unsafe_allow_html=True)
 
-# -------------------------------
-# USER INPUT - FIXED VERSION
-# -------------------------------
+
 # Check for quick action message
 if "quick_message" in st.session_state:
     user_input = st.session_state.quick_message
@@ -491,7 +473,7 @@ else:
     user_input = st.chat_input("Type your message here...")
 
 if user_input:
-    # Append user message
+    # Adds user message
     history.append({"role": "user", "content": user_input})
     
     # Detect safety concerns
@@ -517,5 +499,5 @@ if user_input:
     # Force immediate rerun to display new messages
     st.rerun()
 
-# -------------------------------
 st.markdown("<br>", unsafe_allow_html=True)
+
